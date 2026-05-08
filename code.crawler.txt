@@ -1,0 +1,88 @@
+import requests, bs4
+
+#Enter a keyword you want to search for.
+#This crawler will show you
+#the news search result from various sites.
+
+keyword = input("검색어를 입력하세요 : ")
+
+li_a = list(keyword)
+for c in li_a :
+    if c == ' ':
+        li_a[li_a.index(c)] = '%20'
+
+li_b = list(keyword)
+for d in li_b :
+    if d == ' ':
+        li_b[li_b.index(d)] = '+'
+
+keyword_a = "".join(li_a)
+keyword_b = "".join(li_b)
+
+#동아일보
+Donga = "http://news.donga.com/search?query="+keyword_b+"&check_news=1%7C2%7C3%7C4%7C5"
+#중앙일보
+Jungang = "http://search.joins.com/news?keyword="+keyword_a
+#SBS
+SBS = "http://news.sbs.co.kr/news/search/main.do?query="+keyword_b+"&pageIdx=1&searchOption=1&collection="
+
+News = [Donga, Jungang, SBS]
+
+
+for n in News :
+    re = requests.get(n)
+    re.raise_for_status()
+    re.encoding = 'utf-8','utf-16le','euc-kr','cp949','ascii','ms949','kml'
+    html = re.text
+    soup = bs4.BeautifulSoup(html, 'html.parser')
+
+    if n == Donga :
+        print("\n-> \'", keyword, "\'에 대한 동아일보 검색결과입니다.\n 스크랩 위치 : ", Donga, "\n")
+        d_t = soup.select('p.tit a')
+        d_d = soup.select('p.tit span')
+        d_c = soup.select('p.txt')
+
+        cnt = len(d_t)
+        if cnt >= 3 :
+            cnt = 3
+        else :
+            cnt = len(d_t)
+
+        for i in range(0, cnt):
+            D_t = d_t[i].getText()
+            D_d = d_d[i].getText()
+            D_c = d_c[i].getText()
+            print("\n", i + 1, ". ", D_t, "\n 날짜 : ", D_d, "\n 내용 : ", D_c, "\n")
+
+    elif n == Jungang :
+        print("\n-> \'", keyword, "\'에 대한 중앙일보 검색결과입니다.\n 스크랩 위치 : ", Jungang , "\n")
+        j_t = soup.select('div.text a')
+        j_d = soup.select('span.byline em')
+        j_c = soup.select('span.lead')
+
+        cnt = len(j_t)
+        if cnt >= 3 :
+            cnt = 3
+        else :
+            cnt = len(j_t)
+
+        for i in range(0, cnt):
+            J_t = j_t[i].getText()
+            J_d = j_d[i*2+1].getText()
+            J_c = j_c[i].getText()
+            print("\n", i + 1, ". ", J_t, "\n 날짜 : ", J_d, "\n 내용 : ", J_c, "\n")
+
+    elif n == SBS :
+        print("\n-> \'", keyword, "\'에 대한 SBS뉴스 검색결과입니다.\n 스크랩 위치 : ", SBS, "\n")
+        s_t = soup.select('strong.psil_tit')
+        s_c = soup.select('p.psil_txt')
+
+        cnt = len(s_t)
+        if cnt >= 3 :
+            cnt = 3
+        else :
+            cnt = len(s_t)
+        for i in range(0, cnt):
+            S_t = s_t[i].getText()
+            S_c = s_c[i].getText()
+            print("\n", i + 1, ". ", S_t,  "\n 내용 : ", S_c, "\n")
